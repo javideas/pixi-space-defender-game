@@ -1,16 +1,21 @@
 import * as PIXI from 'pixi.js';
 
-const Application = PIXI.Application;
-const Graphics = PIXI.Graphics;
-
 (async () => {
+    const Application = PIXI.Application;
+    const Graphics = PIXI.Graphics;
+
+    let gameContainer = document.getElementById("app");
+    if(!gameContainer) {
+        throw new Error("Game container not found");
+    }
+
     const app = new Application();
     await app.init({
-        width: 640,
-        height: 360
+        width: 480,
+        height: 720,
     });
 
-    document.body.appendChild(app.canvas);
+    gameContainer.appendChild(app.canvas);
 
     const rectangle = new Graphics();
     rectangle

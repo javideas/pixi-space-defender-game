@@ -1,0 +1,11 @@
+body {
+    margin: 0;
+    background-color: darkgrey;
+}
+
+#game {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
