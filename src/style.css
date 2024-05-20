@@ -3,7 +3,7 @@ body {
     background-color: darkgrey;
 }
 
-#game {
+#app {
     height: 100vh;
     display: flex;
     justify-content: center;
