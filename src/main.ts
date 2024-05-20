@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import {KeyHandler} from "./helpers/keyboard.ts";
 
 (async () => {
     const Application = PIXI.Application;
@@ -17,27 +18,36 @@ import * as PIXI from 'pixi.js';
 
     gameContainer.appendChild(app.canvas);
 
-    const rectangle = new Graphics();
-    rectangle
-        .roundRect(0, 0, 64, 64, 15)
+    const Player = new Graphics();
+    Player
+        .poly([
+            0, 0,
+            50, 0,
+            25, -25,
+        ])
         .fill(0x66CCFF);
 
-    rectangle.x = 100;
-    rectangle.y = 100;
+    Player.x = app.screen.width / 2 - Player.width / 2;
+    Player.y = app.screen.height - 50;
 
-    app.stage.addChild(rectangle);
+    let playerSpeedX = 0;
 
-    let rectangleSpeed: number = 500;
+    KeyHandler(
+        "ArrowLeft",
+        () => {playerSpeedX = -500},
+        () => {playerSpeedX = 0}
+    );
+
+    KeyHandler(
+        "ArrowRight",
+        () => {playerSpeedX = 500},
+        () => {playerSpeedX = 0}
+    );
+
+    app.stage.addChild(Player);
+
     app.ticker.add((ticker) => {
         const delta = ticker.deltaTime / 100;
-        rectangle.x += rectangleSpeed * delta;
-
-        if(rectangle.x > app.screen.width - rectangle.width) {
-            rectangle.x = app.screen.width - rectangle.width;
-            rectangleSpeed = -rectangleSpeed;
-        } else if(rectangle.x < 0) {
-            rectangle.x = 0;
-            rectangleSpeed = -rectangleSpeed;
-        }
+        Player.x += playerSpeedX * delta;
     });
 })();
