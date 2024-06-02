@@ -5,7 +5,7 @@ const Application = PIXI.Application;
 const Graphics = PIXI.Graphics;
 
 (async () => {
-    let gameContainer = document.getElementById("app");
+    let gameContainer = document.getElementById("game");
     if(!gameContainer) {
         throw new Error("Game container not found");
     }
@@ -15,6 +15,14 @@ const Graphics = PIXI.Graphics;
         width: 480,
         height: 720,
     });
+
+    let lives = 3;
+    let level = 1;
+    let score = 0;
+
+    setHudValue("gameLives", lives);
+    setHudValue("gameLevel", level);
+    setHudValue("gameScore", score);
 
     gameContainer.appendChild(app.canvas);
 
@@ -56,7 +64,7 @@ const Graphics = PIXI.Graphics;
         }
     );
 
-    const enemySpawnInterval = 1000;
+    const enemySpawnInterval = 2500;
     function spawnEnemy() {
         if(!document.hasFocus()) {
             return;
@@ -66,7 +74,13 @@ const Graphics = PIXI.Graphics;
         app.stage.addChild(enemy);
     }
 
-    setInterval(spawnEnemy, enemySpawnInterval);
+    let spawnInterval = setInterval(spawnEnemy, enemySpawnInterval);
+    function setEnemySpawnInterval() {
+        spawnInterval && clearInterval(spawnInterval);
+        // Starts at 1 enemy every 2.5 seconds
+        spawnInterval = setInterval(spawnEnemy, enemySpawnInterval - (level * 100) + 100);
+    }
+    setEnemySpawnInterval();
     spawnEnemy();
 
     app.stage.addChild(Player);
@@ -92,6 +106,8 @@ const Graphics = PIXI.Graphics;
             if(enemy.y > app.screen.height + 50) {
                 app.stage.removeChild(enemy);
                 enemies.splice(i, 1);
+                lives--;
+                setHudValue("gameLives", lives);
             }
         }
 
@@ -109,8 +125,21 @@ const Graphics = PIXI.Graphics;
                     app.stage.removeChild(enemy);
                     bullets.splice(i, 1);
                     enemies.splice(j, 1);
+                    score += 90 + (level * 10); // Starts at 100
+                    setHudValue("gameScore", score);
                 }
             }
+        }
+
+        // The score requirement gets higher every level
+        if(score > (level * 1000) + (level * 100) - 100) {
+            level++;
+            setHudValue("gameLevel", level);
+            setEnemySpawnInterval();
+        }
+
+        if(lives <= 0) {
+            console.log("Game Over");
         }
     });
 })();
@@ -148,4 +177,11 @@ function createEnemy() {
     enemy.y = -50;
 
     return enemy;
+}
+
+function setHudValue(targetId: string, value: number) {
+    const target = document.getElementById(targetId);
+    if(target) {
+        target.innerText = value.toString();
+    }
 }
