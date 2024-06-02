@@ -43,16 +43,26 @@ const Graphics = PIXI.Graphics;
 
     let playerSpeedX = 0;
 
-    KeyHandler(
+    const arrowLeftHandler = KeyHandler(
         "ArrowLeft",
         () => {playerSpeedX = -500},
-        () => {playerSpeedX = 0}
+        () => {
+            // To prevent player from stopping moving if the other arrow key is pressed
+            if(!arrowRightHandler.isDown) {
+                playerSpeedX = 0;
+            }
+        }
     );
 
-    KeyHandler(
+    const arrowRightHandler = KeyHandler(
         "ArrowRight",
         () => {playerSpeedX = 500},
-        () => {playerSpeedX = 0}
+        () => {
+            // To prevent player from stopping moving if the other arrow key is pressed
+            if(!arrowLeftHandler.isDown) {
+                playerSpeedX = 0;
+            }
+        }
     );
 
     KeyHandler(
@@ -132,7 +142,7 @@ const Graphics = PIXI.Graphics;
         }
 
         // The score requirement gets higher every level
-        if(score > (level * 1000) + (level * 100) - 100) {
+        if(score >= (level * 1000) + (level * 100) - 100) {
             level++;
             setHudValue("gameLevel", level);
             setEnemySpawnInterval();
