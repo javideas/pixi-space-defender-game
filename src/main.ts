@@ -5,7 +5,6 @@ const Application = PIXI.Application;
 const Graphics = PIXI.Graphics;
 
 (async () => {
-
     let gameContainer = document.getElementById("app");
     if(!gameContainer) {
         throw new Error("Game container not found");
@@ -59,6 +58,9 @@ const Graphics = PIXI.Graphics;
 
     const enemySpawnInterval = 1000;
     function spawnEnemy() {
+        if(!document.hasFocus()) {
+            return;
+        }
         const enemy = createEnemy();
         enemies.push(enemy);
         app.stage.addChild(enemy);
@@ -142,7 +144,7 @@ function createEnemy() {
     }
 
     const enemy = enemyTemplate.clone();
-    enemy.x = Math.random() * 480;
+    enemy.x = 25 + (Math.random() * 480) - 50;
     enemy.y = -50;
 
     return enemy;
