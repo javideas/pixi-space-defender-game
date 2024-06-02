@@ -5,6 +5,13 @@ const Application = PIXI.Application;
 const Graphics = PIXI.Graphics;
 
 (async () => {
+    enum gameStates {
+        "PLAYING",
+        "PAUSED",
+        "GAME_OVER"
+    }
+    let gameState = gameStates.PAUSED;
+
     let gameContainer = document.getElementById("game");
     if(!gameContainer) {
         throw new Error("Game container not found");
@@ -45,7 +52,12 @@ const Graphics = PIXI.Graphics;
 
     const arrowLeftHandler = KeyHandler(
         "ArrowLeft",
-        () => {playerSpeedX = -500},
+        () => {
+            if (gameState !== gameStates.PLAYING) {
+                return;
+            }
+            playerSpeedX = -500
+        },
         () => {
             // To prevent player from stopping moving if the other arrow key is pressed
             if(!arrowRightHandler.isDown) {
@@ -56,7 +68,12 @@ const Graphics = PIXI.Graphics;
 
     const arrowRightHandler = KeyHandler(
         "ArrowRight",
-        () => {playerSpeedX = 500},
+        () => {
+            if (gameState !== gameStates.PLAYING) {
+                return;
+            }
+            playerSpeedX = 500
+        },
         () => {
             // To prevent player from stopping moving if the other arrow key is pressed
             if(!arrowLeftHandler.isDown) {
@@ -74,9 +91,90 @@ const Graphics = PIXI.Graphics;
         }
     );
 
+    KeyHandler(
+        "Escape",
+        () => {
+            if(gameState !== gameStates.PAUSED) {
+                gameState = gameStates.PAUSED;
+                startGameText.text = 'Press enter to resume the game';
+                togglePauseText();
+            }
+        }
+    );
+
+    KeyHandler(
+        "Enter",
+        () => {
+            if(gameState !== gameStates.PLAYING) {
+                if(gameState === gameStates.GAME_OVER) {
+                    resetGame();
+                }
+                gameState = gameStates.PLAYING;
+                togglePauseText();
+            }
+        }
+    );
+
+    const textsStyle = {
+        fontSize: 24,
+        fill: 0xFFFFFF
+    };
+
+    let gameOverText = new PIXI.Text({
+        text: 'GAME OVER',
+        style: textsStyle
+    });
+
+    let startGameText = new PIXI.Text({
+        text: 'Press enter to start the game',
+        style: textsStyle
+    });
+
+    let scoreText = new PIXI.Text({
+        text: 'Score: 0',
+        style: textsStyle
+    });
+
+    gameOverText.x = app.screen.width / 2 - gameOverText.width / 2;
+    gameOverText.y = 200;
+
+    startGameText.y = 250;
+
+    scoreText.y = 300;
+
+    function togglePauseText() {
+        if(gameState === gameStates.PAUSED || gameState === gameStates.GAME_OVER) {
+            // Since the text can change, we need to reposition it.
+            startGameText.x = app.screen.width / 2 - startGameText.width / 2;
+            app.stage.addChild(startGameText);
+        } else {
+            app.stage.removeChild(gameOverText)
+            app.stage.removeChild(startGameText);
+            app.stage.removeChild(scoreText);
+        }
+    }
+    togglePauseText();
+
+    function resetGame() {
+        lives = 3;
+        level = 1;
+        score = 0;
+        setHudValue("gameLives", lives);
+        setHudValue("gameLevel", level);
+        setHudValue("gameScore", score);
+        Player.x = app.screen.width / 2 - Player.width / 2;
+        Player.y = app.screen.height - 50;
+        bullets.forEach(bullet => app.stage.removeChild(bullet));
+        enemies.forEach(enemy => app.stage.removeChild(enemy));
+        bullets.length = 0;
+        enemies.length = 0;
+        setEnemySpawnInterval();
+        spawnEnemy();
+    }
+
     const enemySpawnInterval = 2500;
     function spawnEnemy() {
-        if(!document.hasFocus()) {
+        if(!document.hasFocus() || gameState !== gameStates.PLAYING) {
             return;
         }
         const enemy = createEnemy();
@@ -96,6 +194,10 @@ const Graphics = PIXI.Graphics;
     app.stage.addChild(Player);
 
     app.ticker.add((ticker) => {
+        if(gameState !== gameStates.PLAYING) {
+            return;
+        }
+
         const delta = ticker.deltaTime / 100;
         Player.x += playerSpeedX * delta;
 
@@ -149,7 +251,13 @@ const Graphics = PIXI.Graphics;
         }
 
         if(lives <= 0) {
-            console.log("Game Over");
+            gameState = gameStates.GAME_OVER;
+            startGameText.text = 'Press enter to restart the game';
+            scoreText.text = `Score: ${score}`;
+            scoreText.x = app.screen.width / 2 - scoreText.width / 2;
+            app.stage.addChild(gameOverText);
+            togglePauseText();
+            app.stage.addChild(scoreText);
         }
     });
 })();
